@@ -1,0 +1,33 @@
+- hosts: localhost
+  vars_prompt:
+  - name: cname
+    prompt: Enter the Container name 
+    private: false
+  - name: portno
+    prompt: Enter Random port no.
+    private: false
+    
+  tasks: 
+  - name: install docker
+    pip:
+     name: docker-py
+  - name: start docker service
+    service:
+     name: docker
+     state: started
+     enabled: yes
+  - name: Load image from archive
+    docker_image:
+     name: centos
+     tag: latest
+     load_path: /media/sf_sharefolder/rhel7_5_software_extras/centos-latest.tar
+     state: present
+  - name: Create a docker container
+    docker_container:
+        name: "{{cname}}"
+        image: paas:v2
+        state: started
+        tty: true
+        interactive: true
+        exposed_ports: 4200
+        ports: "{{portno}}:4200"       

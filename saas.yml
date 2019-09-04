@@ -1,0 +1,41 @@
+- hosts: 192.168.43.144
+  vars_prompt:
+  - name: container
+    prompt: "enter container name to start"
+    private: false
+#  vars: 
+#   container: "{{container}}" 
+  tasks:
+  - name: install docker
+    pip:
+     name: docker-py
+  - name: start docker service
+    service:
+     name: docker
+     state: started
+  - name: Load image from archive
+    docker_image:
+     name: centos
+     tag: latest
+     load_path: /media/sf_sharefolder/rhel7_5_software_extras/centos-latest.tar
+     state: present
+  - name: launch/run the docker container
+    docker_container:
+     name: "{{container}}"                
+     image: firefox:v1
+     state: started
+     tty: true
+     interactive: true
+     exposed_ports: 22
+     ports: "1234:22"
+
+- hosts: 192.168.43.71
+  tasks:
+  - lineinfile:
+        create: yes
+        state: present
+        path: "/root/Desktop/firefox.sh"
+        line: "#!/bin/bash\nsshpass -p redhat ssh 192.168.43.144 -p 1234 -X firefox"
+        mode: 0755
+ 
+ 

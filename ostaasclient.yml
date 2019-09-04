@@ -1,0 +1,20 @@
+- hosts: client
+  vars:
+   user_name: "{{user_name}}"
+   lv_size: "{{lv_size}}"
+  tasks:
+#  - selinux:
+#     state: permissive
+#     policy: targeted
+#  - iptables:
+#     flush: yes
+  - file:
+     path: "/media/{{user_name}}"
+     state: directory
+  - mount:
+     fstype: nfs
+     src: "192.168.43.251:/cloud/{{user_name}}"
+     path: /media/{{user_name}}
+     state: mounted
+
+

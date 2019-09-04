@@ -1,0 +1,48 @@
+- hosts: localhost
+  vars_prompt:
+   name: pd_size
+   prompt: "Enter the size of required pendrive"
+   private: false
+  tasks:
+
+  - mount:
+     path: /run/media/root/PALWESH
+     src: /dev/sdc1
+     state: unmounted
+
+  - parted:
+     device: /dev/sdc
+     number: 1
+     state: absent
+  - parted:
+     device: /dev/sdc
+     number: 1
+     state: present 
+#     part_end: "{{pd_size}}GiB"
+  - package: 
+     name: "scsi-target-utils"
+     state: present
+
+  - template:
+      src: "/var/www/cgi-bin/targets.conf"
+      dest: "/etc/tgt/targets.conf"
+
+  - service:
+     name: "tgtd"
+     state: started
+     enabled: yes
+  - selinux:
+     state: permissive
+     policy: targeted
+  - iptables:
+     flush: yes
+
+   
+- hosts: 192.168.43.71
+  tasks:
+  - name: "Discover the devices shared by cloud(iscsi-server)"
+    command: "iscsiadm --mode discoverydb --type sendtargets --portal 192.168.43.251 --discover"
+    register: device
+
+  - name: "Login to the cloud device to detect in client system"
+    command: "iscsiadm --mode node --targetname mycloud --portal 192.168.43.251:3260 --login"
